@@ -6,7 +6,6 @@ output: html_document
 ---
 ## Environment and Tool Setup
 
-```{r, eval=FALSE}
 # Load miniconda
 module load miniconda3/25.3.1
 
@@ -51,11 +50,11 @@ pvacseq install_vep_plugin $HOME/.vep/Plugins
 conda create -n vatools_env python=3.9 -y
 conda activate vatools_env
 pip install vatools
-```
+
 
 ## Resources:
 ### SSM3 Tumour and TAC239 WGS Data 
-```{r, eval=FALSE}
+
 # SRA Project: SRRP061941
 fasterq-dump SRR2142076
 fasterq-dump SRR2141680
@@ -64,19 +63,19 @@ mv SRR2142076_1.fastq  SSM3_1.fastq
 mv SRR2142076_2.fastq  SSM3_2.fastq
 mv SRR2141680_1.fastq  TAC239_1.fastq
 mv SRR2141680_2.fastq  TAC239_2.fastq 
-```
+
 ### SSM3 RNA-Seq Data 
-```{r, eval=FALSE}
+
 # # GEO: GSE268752, Sample: GSM8298412, SRA: SRX24763613
 fasterq-dump --split-files SRR29245256
 # Renamed
 mv SRR29245256_1.fastq SSM3_RNA_1.fastq
 mv SRR29245256_2.fastq SSM3_RNA_2.fastq
-```
+
 
 ## Whole Genome Sequence 
 ### Quality Control
-```{r, eval=FALSE}
+
 conda activate mouse_env
 
 # SSM3 (tumour)
@@ -96,17 +95,17 @@ fastp \
     -O TAC239_2_clean.fastq \
     -h TAC239_fastp.html \
     -j TAC239_fastp.json
-```
+
 ### Download Reference Genome & Index
-```{r, eval=FALSE}
+
 # Download GRCm39 reference genome (Ensembl release 115)
 wget https://ftp.ensembl.org/pub/release-115/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz
 
 # Index for BWA alignment
 bwa index Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz
-```
+
 ### BWA Alignment
-```{r, eval=FALSE}
+
 # TAC239 germline alignment (2 threads)
 bwa mem -t 2 \
     -R "@RG\tID:TAC239\tSM:TAC239\tPL:ILLUMINA\tLB:lib1" \
@@ -118,9 +117,9 @@ bwa mem -t 3 \
     -R "@RG\tID:SSM3\tSM:SSM3\tPL:ILLUMINA\tLB:lib1" \
     ../Mouse-Resources/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz \
     SSM3_1_clean.fastq SSM3_2_clean.fastq > SSM3.sam
-```
+
 ### Convert SAM to BAM and Index
-```{r, eval=FALSE}
+
 # TAC239
 samtools view -bS -@ 8 TAC239.sam | samtools sort -@ 8 -o TAC239_sorted.bam
 samtools index -@ 8 TAC239_sorted.bam
@@ -128,9 +127,9 @@ samtools index -@ 8 TAC239_sorted.bam
 # SSM3
 samtools view -bS -@ 16 SSM3.sam | samtools sort -@ 16 -o SSM3_sorted.bam
 samtools index -@ 8 SSM3_sorted.bam
-```
+
 ### Mark Duplicates
-```{r, eval=FALSE}
+
 # TAC239 germline
 gatk MarkDuplicates -I TAC239_sorted.bam -O TAC239_markdup.bam -M TAC239_markdup_metrics.txt
 samtools index -@ 8 TAC239_markdup.bam
@@ -138,14 +137,14 @@ samtools index -@ 8 TAC239_markdup.bam
 # SSM3 tumour
 gatk MarkDuplicates -I SSM3_sorted.bam -O SSM3_markdup.bam -M SSM3_markdup_metrics.txt
 samtools index -@ 16 SSM3_markdup.bam
-```
+
 ### Alignment Statistics 
-```{r, eval=FALSE}
+
 samtools flagstat TAC239_markdup.bam > TAC239_alignment_stats.txt
 samtools flagstat SSM3_markdup.bam > SSM3_alignment_stats.txt
-```
+
 ### Reference Genome Preperation for GATK
-```{r, eval=FALSE}
+
 # Decompress reference (keeping original)
 Gunzip -c Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz > Mus_musculus.GRCm39.dna_sm.primary_assembly.fa
 
@@ -154,9 +153,9 @@ samtools faidx Mus_musculus.GRCm39.dna_sm.primary_assembly.fa
 
 # Create sequence dictionary
 gatk CreateSequenceDictionary -R Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz
-```
+
 ### Somatic Variant Calling
-```{r, eval=FALSE}
+
 # Call somatic variants with Mutect2
 gatk Mutect2 \
     -R ../Mouse-Resources/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa \
@@ -185,9 +184,9 @@ gatk CountVariants -V somatic_variants_pass.vcf.gz
 # Count Raw Variants
 gatk CountVariants -V soamtic_variants.vcf.gz
 # Result: 311,393
-```
+
 ### VEP Annotation 
-```{r, eval=FALSE}
+
 conda activate vep_env
 
 vep -i somatic_variants_pass.vcf.gz \
@@ -196,11 +195,11 @@ vep -i somatic_variants_pass.vcf.gz \
     --cache --dir_cache $HOME/.vep \
     --assembly GRCm39 --everything \
     --fork 8 --force_overwrite
-```
+
 
 ## SSM3 RNA-seq Analysis 
 ### Fastp Quality Control 
-```{r, eval=FALSE}
+
 conda activate mouse_env
 cd ../SSM3-RNA-seq
 
@@ -220,9 +219,9 @@ fastp \
     -o SSM3_RNA_1_trim.fastq \
     -O SSM3_RNA_2_trim.fastq \
     -Q -L
-```
+
 ### Download GTF and Build STAR Index
-```{r, eval=FALSE}
+
 cd ../Mouse-Resources
 
 # Download GTF
@@ -236,9 +235,9 @@ STAR --runMode genomeGenerate \
     --sjdbGTFfile ../Mouse-Resources/Mus_musculus.GRCm39.115.gtf \
     --sjdbOverhang 125 \
     --runThreadN 8
-```
+
 ### STAR Alignment
-```{r, eval=FALSE}
+
 cd ../SSM3-RNA-seq
 
 # Raw unfiltered reads
@@ -273,17 +272,17 @@ STAR --runMode alignReads \
 
 # Index final BAM
 samtools index SSM3_RNA_Aligned.sortedByCoord.out.bam
-```
+
 ### Expression Quantificaiotn with StringTie
-```{r, eval=FALSE}
+
 stringtie SSM3_RNA_Aligned.sortedByCoord.out.bam \
     -G ../Mouse-Resources/Mus_musculus.GRCm39.115.gtf \
     -e \
     -A SSM3_gene_abundance.tsv \
     -o SSM3_stringtie.gtf
-```
+
 ### VCF Decomposition
-```{r, eval=FALSE}
+
 conda activate mouse_env
 cd ../Mouse-WGS
 
@@ -291,7 +290,7 @@ vt decompose -s somatic_variants_pass.vcf.gz \
     -o somatic_variants_pass_decomposed.vcf.gz
 ```
 ### Rerun VEP and Plugins on Decomposed VCF
-```{r, eval=FALSE}
+
 conda activate vep_env
 
 vep -i somatic_variants_pass_decomposed.vcf.gz \
@@ -303,9 +302,9 @@ vep -i somatic_variants_pass_decomposed.vcf.gz \
     --plugin Wildtype \
     --plugin Frameshift \
     --dir_plugins $HOME/.vep/Plugins
-```
+
 ### Generate RNA Readcounts
-```{r, eval=FALSE}
+
 conda activate mouse_env
 cd ../Mouse-WGS
 
@@ -323,9 +322,9 @@ python bam_readcount_helper.py \
     ../Mouse-Resources/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa \
     ../SSM3-RNA-seq/SSM3_RNA_Aligned.sortedByCoord.out.bam \
     ./Readcounts_RNA
-```
+
 ### Annotate VCF with RNA Readcounts and Expresison
-```{r, eval=FALSE}
+
 conda activate vatools_env
 
 # SNV readcounts
@@ -355,10 +354,10 @@ vcf-expression-annotator \
     ../SSM3-RNA-seq/SSM3_stringtie.gtf \
     stringtie transcript -s SSM3 \
     -o SSM3_final_annotated.vcf
-```
+
 
 ## pVAACseq - WGS 
-```{r, eval=FALSE}
+
 conda activate pvac_env
 
 # NetMHCpan
@@ -381,10 +380,10 @@ pvacseq run somatic_variants_VEP_plugins.vcf SSM3 H-2-Db,H-2-Kb SMMPMBEC \
 pvacseq run somatic_variants_VEP_plugins.vcf SSM3 H-2-Db,H-2-Kb \
     NetMHCpan NetMHCcons SMM SMMPMBEC \
     pvacseq_output/Combined --top-score-metric=median -e1 8,9,10,11
-```
+
 
 ## pVACseq - Expression
-```{r, eval=FALSE}
+
 conda activate pvac_env
 
 # NetMHCpan
@@ -407,5 +406,5 @@ pvacseq run SSM3_final_annotated.vcf SSM3 H-2-Db,H-2-Kb SMMPMBEC \
 pvacseq run SSM3_final_annotated.vcf SSM3 H-2-Db,H-2-Kb \
     NetMHCpan NetMHCcons SMM SMMPMBEC \
     pvacseq_output/Combined_RNA --top-score-metric=median -e1 8,9,10,11
-```
+
 
