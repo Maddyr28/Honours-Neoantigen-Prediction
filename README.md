@@ -3,7 +3,7 @@ Honours Neoantigen Prediction Overview
 
 This repository contains the bioinformatic code used for neoantigen prediction in the murine ER+ breast cancer cell line SSM3, as part of an Honours thesis project (2026).
 
-The pipeline identifies tumour-specific somatic variants from whole genome sequencing data, integrates RNA-seq expression data, and uses pVACseq to predict and prioritise candidate neoantigen peptides for potential use as personalised cancer vaccine targets.
+The pipeline identifies tumour-specific somatic variants from murine whole genome sequencing data, integrates RNA-seq expression data, and uses pVACseq to predict and prioritise candidate neoantigen peptides for potential use as personalised cancer vaccine targets.
 
 Data
 * SSM3 WGS: SRR2142076 (SRA)
