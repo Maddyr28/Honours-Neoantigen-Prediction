@@ -288,7 +288,7 @@ cd ../Mouse-WGS
 
 vt decompose -s somatic_variants_pass.vcf.gz \
     -o somatic_variants_pass_decomposed.vcf.gz
-```
+
 ### Rerun VEP and Plugins on Decomposed VCF
 
 conda activate vep_env
